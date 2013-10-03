@@ -2,6 +2,9 @@ window.addEventListener("DOMContentLoaded", function() {
 	var canvas = document.getElementsByTagName("canvas")[0];
 });
 
+/**
+ * Getter and setter for the first item in an Array.
+ */
 Object.defineProperty(Array.prototype, "first", {
 	get: function first() {
 		return this[0];
@@ -11,6 +14,9 @@ Object.defineProperty(Array.prototype, "first", {
 	}
 });
 
+/**
+ * Getter and setter for the last item in an Array.
+ */
 Object.defineProperty(Array.prototype, "last", {
 	get: function last() {
 		return this[this.length - 1];
@@ -20,23 +26,32 @@ Object.defineProperty(Array.prototype, "last", {
 	}
 });
 
+/**
+ * Returns arg if it is an Array, otherwise returns [arg].
+ * @param {Array|Object} arg - The Array to return or Object to wrap.
+ */
 Array.prototype.wrap = function(arg) {
 	return arg instanceof Array ? arg : [arg];
 }
 
-Object.prototype.extend = function() {
-	var length = arguments.length
-	  , i      = 0
-	  , key;
-	for(; i < length; i++) {
-		for(key in arguments[i]) {
-			if(arguments[i].hasOwnProperty(key)) {
-				this[key] = arguments[i][key];
-			}
+/**
+ * Iterates over the keys in obj and if the key is the obj's own property,
+ * include it in the receiver.
+ * @param {Object} obj - The object to include.
+ */
+Object.prototype.extend = function(obj) {
+	for(key in obj) {
+		if(obj.hasOwnProperty(key)) {
+			this[key] = obj[key];
 		}
 	}
 }
 
+/**
+ * Similar to extend except it applies Function.wrapSuper whenever the receiver
+ * and obj have a Function as key.
+ * @param {Object} obj - The object to include.
+ */
 Object.prototype.mixin = function(obj) {
 	for(var key in obj) {
 		if(obj.hasOwnProperty(key)) {
@@ -50,6 +65,12 @@ Object.prototype.mixin = function(obj) {
 	}
 }
 
+/**
+ * Returns a Function that, when called, changes the value of super on its
+ * context, calls the receiver of wrapSuper, and reverts the value of super on
+ * its context.
+ * @param {Function} sup - The Function to be defined as this.super.
+ */
 Function.prototype.wrapSuper = function(sup) {
 	var func = this;
 	return function() {
@@ -62,6 +83,13 @@ Function.prototype.wrapSuper = function(sup) {
 	}
 }
 
+/**
+ * Returns a class with all but the last arguments merged into the last argument
+ * as super classes. Methods present in the child and the parent have wrapSuper
+ * called on them.
+ * @param {...Object} [parent] - A super class.
+ * @param {Object} obj - The attribute and methods definitions.
+ */
 var Class = function() {
 
 	var args        = [].slice.call(arguments)
@@ -88,22 +116,3 @@ var Class = function() {
 	return constructor;
 
 }
-
-var Agent = Class({
-	initialize: function() {
-		console.log("there");
-	},
-	toString: function() {
-		return "Agent";
-	}
-});
-
-var Tower = Class(Agent, {
-	initialize: function() {
-		this.super();
-		console.log("here");
-	}
-});
-
-console.log(new Tower());
-
