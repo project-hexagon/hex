@@ -67,30 +67,43 @@ var Class = function() {
 	var args        = [].slice.call(arguments)
 	  , obj         = args.last
 	  , parents     = args.slice(0, -1)
-	  , constructor = obj.initialize || function() {};
+	  , constructor;
+
+	if(obj.initialize) {
+		constructor = function() {
+			obj.initialize.apply(this, arguments);
+		};
+	} else {
+		constructor = function() {};
+	}
 
 	constructor.prototype = obj;
-	parents.forEach(function(obj) {
-		constructor.mixin(obj);
-		constructor.prototype.mixin(obj.prototype);
-	});
 	constructor.constructor = constructor;
+	parents.forEach(function(parent) {
+		constructor.mixin(parent);
+		constructor.prototype.mixin(parent.prototype);
+		constructor.constructor = constructor.constructor.wrapSuper(parent.constructor);
+	});
 
 	return constructor;
 
 }
 
 var Agent = Class({
+	initialize: function() {
+		console.log("there");
+	},
 	toString: function() {
 		return "Agent";
 	}
 });
 
 var Tower = Class(Agent, {
-	toString: function() {
-		return this.super() + "::Tower";
+	initialize: function() {
+		this.super();
+		console.log("here");
 	}
 });
 
-console.log(new Tower().toString());
+console.log(new Tower());
 
