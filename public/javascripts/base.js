@@ -1,7 +1,3 @@
-window.addEventListener("DOMContentLoaded", function() {
-	var canvas = document.getElementsByTagName("canvas")[0];
-});
-
 /**
  * Getter and setter for the first item in an Array.
  */
@@ -40,11 +36,23 @@ Array.prototype.wrap = function(arg) {
  * @param {Object} obj - The object to include.
  */
 Object.prototype.extend = function(obj) {
-	for(key in obj) {
-		if(obj.hasOwnProperty(key)) {
-			this[key] = obj[key];
+	for(var key in obj.keys()) {
+		this[key] = obj[key];
+	}
+}
+
+/**
+ * Iterates over the object's properties, if they are the objects' own
+ * properties.
+ */
+Object.prototype.keys = function() {
+	var keys = [];
+	for(var key in this) {
+		if(this.hasOwnProperty(key)) {
+			keys.push(key);
 		}
 	}
+	return keys;
 }
 
 /**
@@ -53,23 +61,31 @@ Object.prototype.extend = function(obj) {
  * @param {Object} obj - The object to include.
  */
 Object.prototype.mixin = function(obj) {
-	for(var key in obj) {
-		if(obj.hasOwnProperty(key)) {
-			var newValue = obj[key]
-			  , oldValue = this[key];
-			if(oldValue instanceof Function && newValue instanceof Function) {
-				newValue = oldValue.wrapSuper(newValue);
+	obj.keys().forEach(function(key) {
+		var child, parent;
+		if(child = Object.getOwnPropertyDescriptor(this, key)) {
+			if(parent = Object.getOwnPropertyDescriptor(obj, key)) {
+				if(parent.get && child.get) {
+					child.get = child.get.wrapSuper(parent.get);
+				}
+				if(parent.set && parent.set) {
+					child.set = child.set.wrapSuper(parent.set);
+				}
+			} else if(child.get) {
+				child.get = child.get.wrapSuper(obj[key]);
 			}
-			this[key] = newValue;
+			Object.defineProperty(this, key, child);
+		} else if((child = this[key]) && child && child.wrapSuper) {
+			this[key] = child.wrapSuper(obj[key]);
 		}
-	}
+	}, this);
 }
 
 /**
  * Returns a Function that, when called, changes the value of super on its
  * context, calls the receiver of wrapSuper, and reverts the value of super on
  * its context.
- * @param {Function} sup - The Function to be defined as this.super.
+ * @param {Object} sup - The Object to be defined as this.super.
  */
 Function.prototype.wrapSuper = function(sup) {
 	var func = this;
