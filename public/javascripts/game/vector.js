@@ -12,4 +12,8 @@ var Vector = Class({
 	get angle() {
 		return Math.atan2(position.y, position.x);
 	}
+}).extend({
+	fromEvent: function(event) {
+		return new Vector(event.pageX, event.pageY);
+	}
 });

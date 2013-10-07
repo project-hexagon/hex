@@ -13,7 +13,6 @@
  *
  * The error is less than 0.05 pixels, which is less than 1/1000th of the size.
  *
- *
  *         |----------------------60px----------------------|
  *         |---15px---|----15px----|
  *   _  _            1____________________________2
@@ -48,13 +47,15 @@ var Tile = Class({
 	draw: function(context) {
 		var x = this.position.x
 		  , y = this.position.y;
+		context.beginPath();
 		context.moveTo(x - 15, y + 26);
 		context.lineTo(x + 15, y + 26);
 		context.lineTo(x + 30, y     );
 		context.lineTo(x + 15, y - 26);
 		context.lineTo(x - 15, y - 26);
 		context.lineTo(x - 30, y     );
-		context.lineTo(x - 15, y + 26);
+		context.closePath();
+		context.stroke();
 	}
 }).extend({
 	width: 60,

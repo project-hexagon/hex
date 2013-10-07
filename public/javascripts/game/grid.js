@@ -1,3 +1,61 @@
+/**
+ *
+ * The hexagon grid is indexed as such:
+ *    _____         _____
+ *   /     \       /     \
+ *  /  0,0  \_____/  2,0  \
+ *  \       /     \       /
+ *   \_____/  1,0  \_____/
+ *   /     \       /     \
+ *  /  0,1  \_____/  2,1  \
+ *  \       /     \       /
+ *   \_____/  1,1  \_____/
+ *   /     \       /     \
+ *  /  0,2  \_____/  2,2  \
+ *  \       /     \       /
+ *   \_____/  1,2  \_____/
+ *         \       /
+ *          \_____/
+ *
+ * To convert from pixel coordinates to hex coordinates, the hex grid is broken
+ * up like this:
+ * 
+ *         |----------------------60px----------------------|
+ *         |---15px---|----------------45px-----------------|
+ *   _  _             ________________________________________
+ *   |  |            /|                           \          |
+ *   |  |           / |                            \         |
+ *   |  |          /  |                             \        |
+ *   |  |         /   |                              \       |
+ *   | 26px      /    |                               \      |
+ *   |  |       /     |                                \     |
+ *   |  |      /      |                                 \    |
+ *   |  |     /       |                                  \   |
+ *   |  |    /        |                                   \  |
+ *   |  |   /         |                                    \ |
+ *  52px-  /          |             X                       \|
+ *   |     \          |                                     /|
+ *   |      \         |                                    / |
+ *   |       \        |                                   /  |
+ *   |        \       |                                  /   |
+ *   |         \      |                                 /    |
+ *   |          \     |                                /     |
+ *   |           \    |                               /      |
+ *   |            \   |                              /       |
+ *   |             \  |                             /        |
+ *   |              \ |                            /         |
+ *   -               \|___________________________/__________|
+ *
+ * It is trivial to split up the grid on a rectangular basis, which is the first
+ * step. The vertical lines represent where the grid gets laid out in relation
+ * to the hexagon. After you know the x and y indices of the rectangular grid,
+ * you can figure out which hexagon the point lies within.
+ *
+ * So, we must test whether the pixel coordinates are inside the hexagon. First,
+ * if the mouse is within the left section of the grid, we know it is in the
+ * hexagon. If the mouse is near the right side of the hexagon, we must test
+ * whether it is over the upper right or lower right neighbors.
+ */
 var Grid = Class({
 	initialize: function(size) {
 		this.size = size;
@@ -18,33 +76,77 @@ var Grid = Class({
 	},
 	draw: function() {
 		this.context.clearRect(0, 0, this.canvas.element.width, this.canvas.element.height);
-		this.context.beginPath();
 		this._grid.forEach(function(row) {
 			row.forEach(function(tile) {
 				tile.draw(this.context);
+				if(tile == this.hovered) {
+					this.context.fill();
+				}
 			}, this);
 		}, this);
-		this.context.stroke();
-		this.context.beginPath();
-		this.context.arc(this.x, this.y, 5, 0, Math.PI * 2, false);
-		this.context.fillStyle = 'red';
-		this.context.fill();
-		this.context.beginPath();
-		this.context.arc(this.gX * Tile.gridWidth, this.gY * Tile.gridHeight + (this.gX && this.gX.even ? Tile.gridHeight / 2 : 0), 5, 0, Math.PI * 2, false);
-		this.context.fillStyle = 'blue';
-		this.context.fill();
 		window.requestAnimationFrame(this.draw.bind(this));
 	},
+	/**
+	 * Returns the Tile at the given pixel coordinates if there is one.
+	 * @param {Vector} position - The pixel coordinates where a hexagon may be.
+	 */
+	tileAt: function(position) {
+		// Normalize x position because hexagons are positioned at their
+		// centers. Y position takes care of itself.
+		var x = position.x + Tile.width / 4
+		  , y = position.y
+		  , xIndex, yIndex
+		  , xDelta, yDelta
+		  , tile, row;
+
+		xIndex = Math.floor(x / Tile.gridWidth);
+		// If xIndex is odd, then shift the y value by half the gridHeight,
+		// because the odd zero-indexed hexagon columns are shifted by that
+		// much.
+		yIndex = Math.floor((xIndex.odd ? y + Tile.gridHeight / 2 : y) / Tile.gridHeight);
+
+		// xDelta and yDelta represent the relative coordinates inside the 
+		// rectangular grid.
+		xDelta = x - xIndex * Tile.gridWidth;
+		// Shift yDelta by half gridHeight if xIndex is odd to get correct
+		// offset.
+		yDelta = y - yIndex * Tile.gridHeight - (xIndex.odd ? Tile.gridHeight / 2 : y);
+
+		// If the relative mouse position lies within the left portion of the 
+		// hexagon, then we do not need to check whether the mouse is actually
+		// in the upper or lower right neighbor.
+		if(xDelta > 30) {
+
+			// If the mouse could be in the upper right neighbor, check to see
+			// if it actually is.
+			if(yDelta < 26 && false) {
+
+				// Shift up a row or stay at the same level, depending on the
+				// parity of the column index.
+				yIndex += (xIndex.odd ? 0 : -1);
+				// Shift over a column.
+				xIndex++;
+
+			// If the mouse could be in the lower right neighbor, check to see
+			// if it actually is.
+			} else if(yDelta > 26 && false) {
+
+				// Shift down a row or stay at the same level, depending on the
+				// parity of the column index.
+				yIndex += (xIndex.odd ? 1 : 0);
+				// Shift over a column.
+				xIndex++;
+
+			}
+		}
+
+		// Try to return a tile at xIndex, yIndex in this._grid, there may not
+		// be one, so check for nulity.
+		row = this._grid[yIndex];
+		tile = row ? row[xIndex] : null;
+		return tile;
+	},
 	highlight: function(event) {
-		this.x = event.pageX;
-		this.y = event.pageY;
-		var gX = Math.floor((event.pageX + Tile.gridWidth / 3) / Tile.gridWidth);
-		var gY = Math.floor((event.pageY + (this.gX && this.gX.odd ? Tile.gridHeight / 2 : 0)) / Tile.gridHeight);
-		var aX = gX * Tile.gridWidth;
-		var aY = gY * Tile.gridHeight + (this.gX && this.gX.even ? Tile.gridHeight / 2 : 0);
-		var dX = event.pageX - aX;
-		var dY = event.pageY - aY;
-		this.gX = gX;
-		this.gY = gY;
+		this.hovered = this.tileAt(Vector.fromEvent(event));
 	}
 });
