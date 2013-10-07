@@ -2,13 +2,51 @@
  * Returns a class with all but the last arguments merged into the last argument
  * as super classes. Methods present in the child and the parent have wrapSuper
  * called on them.
+ * 
+ * Usage:
+ * -----------------------------------------------------------------------------
+   var Animal = Class({
+     
+     type: "Mammal", // Instance variable.
+
+     speak: function() { // Instance method.
+	   return "I am a ";
+     }	
+
+   }).extend({
+
+     count: 0, // Class variable.
+
+     find: function() { // Class method.
+       // ...
+     }
+
+   });
+   var Dog = Class(Animal, {
+
+   	 _name: "Dog", // Private instance variable (by convention).
+
+     speak: function() {
+       return this._super() + "dog";
+     },
+
+     get name() {
+       return this._name;
+     },
+
+     set name(value) {
+       this._name = value;
+       return this.name;
+     }
+   });
+ * 
  * @param {...Object} [parent] - A super class.
  * @param {Object} obj - The attribute and methods definitions.
  */
 var Class = function() {
 
 	var args        = [].slice.call(arguments)
-	  , obj         = args.last
+	  , obj         = args.last || {}
 	  , parents     = args.slice(0, -1)
 	  , constructor;
 

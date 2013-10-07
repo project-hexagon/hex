@@ -7,6 +7,7 @@ Object.prototype.extend = function(obj) {
 	Object.keys(obj).forEach(function(key) {
 		this[key] = obj[key];
 	}, this);
+	return this;
 }
 
 /**
@@ -33,4 +34,5 @@ Object.prototype.mixin = function(obj) {
 			this[key] = child.wrapSuper(obj[key]);
 		}
 	}, this);
+	return this;
 }
