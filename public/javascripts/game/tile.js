@@ -45,22 +45,16 @@ var Tile = Class({
 	initialize: function(position) {
 		this.position = position;
 	},
-	draw: function(context, fill) {
+	draw: function(context) {
 		var x = this.position.x
 		  , y = this.position.y;
-		context.beginPath();
 		context.moveTo(x - 15, y + 26);
 		context.lineTo(x + 15, y + 26);
 		context.lineTo(x + 30, y     );
 		context.lineTo(x + 15, y - 26);
 		context.lineTo(x - 15, y - 26);
 		context.lineTo(x - 30, y     );
-		context.closePath();
-		context.strokeStyle = "#000";
-		context.stroke();
-		if(fill) {
-			context.fill();
-		}
+		context.lineTo(x - 15, y + 26);
 	}
 }).extend({
 	width: 60,
