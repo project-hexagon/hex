@@ -110,7 +110,7 @@ var Grid = Class({
 		xDelta = x - xIndex * Tile.gridWidth;
 		// Shift yDelta by half gridHeight if xIndex is odd to get correct
 		// offset.
-		yDelta = y - yIndex * Tile.gridHeight - (xIndex.odd ? Tile.gridHeight / 2 : y);
+		yDelta = y - yIndex * Tile.gridHeight + (xIndex.odd ? Tile.gridHeight / 2 : 0);
 
 		// If the relative mouse position lies within the left portion of the 
 		// hexagon, then we do not need to check whether the mouse is actually
@@ -119,21 +119,21 @@ var Grid = Class({
 
 			// If the mouse could be in the upper right neighbor, check to see
 			// if it actually is.
-			if(yDelta < 26 && false) {
+			if(yDelta < 26 && 15 * yDelta < 26 * (xDelta - 30)) {
 
-				// Shift up a row or stay at the same level, depending on the
+				// Shift down a row or stay at the same level, depending on the
 				// parity of the column index.
-				yIndex += (xIndex.odd ? 0 : -1);
+				yIndex += (xIndex.odd ? -1 : 0);
 				// Shift over a column.
 				xIndex++;
 
 			// If the mouse could be in the lower right neighbor, check to see
 			// if it actually is.
-			} else if(yDelta > 26 && false) {
+			} else if(yDelta > 26 && 15 * (52 - yDelta) < 26 * (xDelta - 30)) {
 
-				// Shift down a row or stay at the same level, depending on the
+				// Shift up a row or stay at the same level, depending on the
 				// parity of the column index.
-				yIndex += (xIndex.odd ? 1 : 0);
+				yIndex += (xIndex.odd ? 0 : 1);
 				// Shift over a column.
 				xIndex++;
 
