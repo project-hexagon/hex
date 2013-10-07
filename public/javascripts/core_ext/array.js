@@ -2,6 +2,8 @@
  * Getter and setter for the first item in an Array.
  */
 Object.defineProperty(Array.prototype, "first", {
+	enumerable: false,
+	configurable: false,
 	get: function first() {
 		return this[0];
 	},
@@ -14,6 +16,8 @@ Object.defineProperty(Array.prototype, "first", {
  * Getter and setter for the last item in an Array.
  */
 Object.defineProperty(Array.prototype, "last", {
+	enumerable: false,
+	configurable: false,
 	get: function last() {
 		return this[this.length - 1];
 	},
